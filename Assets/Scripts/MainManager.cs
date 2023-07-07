@@ -10,18 +10,24 @@ public class MainManager : MonoBehaviour
     public int LineCount = 6;
     public Rigidbody Ball;
 
+    public Text bestScoreText;
     public Text ScoreText;
+    public GameObject PausePanel;
     public GameObject GameOverText;
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
+    [SerializeField] bool isPaused = false;
 
-    
     // Start is called before the first frame update
+
     void Start()
     {
+        bestScoreText.text = "Best Score : " + DataManager.Intance.user + " : " +
+            DataManager.Intance.score;
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -60,17 +66,60 @@ public class MainManager : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
+
+        if (m_Started && !m_GameOver)
+        {
+            PausedHandler();
+        }
+
+    }
+
+    void PausedHandler()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            isPaused = !isPaused;
+
+            if (isPaused)
+            {
+                Time.timeScale = 0f;
+            }
+            else
+            {
+                Time.timeScale = 1f;
+            }
+        }
+
+        PausePanel.SetActive(isPaused);
     }
 
     void AddPoint(int point)
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+
+        if (m_Points > DataManager.Intance.score)
+        {
+            DataManager.Intance.score = m_Points;
+            DataManager.Intance.user = DataManager.Intance.newUser;
+            DataManager.Intance.SaveData();
+        }
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+        DataManager.Intance.LoadData();
+
+        bestScoreText.text = "Best Score : " + DataManager.Intance.user + " : " + 
+            DataManager.Intance.score;
+    }
+
+    // when button "Quit" clicked
+    public void QuitButton()
+    {
+        SceneManager.LoadScene(0);
     }
 }
